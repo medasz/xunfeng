@@ -15,19 +15,33 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 # install requirements
 
 RUN set -x \
+    && echo '' >/etc/apt/sources.list \
+    && echo 'deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse\n\
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse\n\
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse\n\
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse\n\
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial main restricted universe multiverse\n\
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-updates main restricted universe multiverse\n\
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-backports main restricted universe multiverse\n\
+deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ xenial-security main restricted universe multiverse\n'>/etc/apt/sources.list \
+    && apt-get clean \
     && apt-get update \
-    && apt-get install -y wget unzip gcc libssl-dev libffi-dev python-dev libpcap-dev python-pip
+    && apt-get upgrade -y \
+    && apt-get install -y wget unzip gcc libssl-dev libffi-dev python-dev libpcap-dev python python-setuptools curl \
+    && curl 'https://bootstrap.pypa.io/pip/2.7/get-pip.py' > get-pip.py \
+    && sudo python get-pip.py \
+    && sudo easy_install pip
 
 # install mongodb
 
-ENV MONGODB_TGZ https://sec.ly.com/mirror/mongodb-linux-x86_64-3.4.0.tgz
+#ENV MONGODB_TGZ https://sec.ly.com/mirror/mongodb-linux-x86_64-3.4.0.tgz
 RUN set -x \
-    && wget -O /tmp/mongodb.tgz $MONGODB_TGZ \
-    && mkdir -p /opt/mongodb \
-    && tar zxf /tmp/mongodb.tgz -C /opt/mongodb --strip-components=1 \
-    && rm -rf /tmp/mongodb.tgz
+    && sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys D68FA50FEA312927 \
+    && echo "deb https://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse\n" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install mongodb-org -y
 
-ENV PATH /opt/mongodb/bin:$PATH
+#ENV PATH /opt/mongodb/bin:$PATH
 
 # install xunfeng
 RUN mkdir -p /opt/xunfeng
